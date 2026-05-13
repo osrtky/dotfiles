@@ -4,6 +4,7 @@ local tls_util = require("telescope_util")
 local util = require("util")
 
 local format_file_keymap = "<leader>lf"
+local lsp_filetypes = { "cpp", "python", "cuda", "c", "lua", "swift" }
 
 local function set_generic_keymap()
   local termit = require("termit")
@@ -137,7 +138,8 @@ local function set_language_autocmd()
 end
 
 local function set_lsp_keymap(opts)
-  if not util.item_in(vim.bo.filetype, { "cpp", "python", "cuda", "c", "lua" }) then
+  local ft = vim.bo.filetype
+  if not util.item_in(ft, lsp_filetypes) then
     return
   end
 
@@ -171,19 +173,16 @@ local function set_lsp_keymap(opts)
   vim.keymap.set("n", "<leader>lr", vim.lsp.buf.rename, opts)
   vim.keymap.set("n", "<leader>ls", vim.lsp.buf.signature_help, opts)
 
-  if vim.bo.filetype == "cpp" then
+  if ft == "cpp" then
     vim.keymap.set("n", "gh", ":LspClangdSwitchSourceHeader<enter>")
   end
 end
 
 local function set_lsp_autocmd()
   vim.api.nvim_create_autocmd("LspAttach", {
-    pattern = { "*.c", "*.cpp", "*.h", "*.hpp", "*.cu", "*.py", "*.lua" },
     group = vim.api.nvim_create_augroup("UserLspConfig", {}),
     callback = function(ev)
-      vim.bo[ev.buf].omnifunc = "v:lua.vim.lsp.omnifunc"
-      local buffer_opts = { buffer = ev.buf }
-      set_lsp_keymap(buffer_opts)
+      set_lsp_keymap({ buf = ev.buf })
     end,
   })
 end
