@@ -178,6 +178,17 @@ local function set_lsp_keymap(opts)
   end
 end
 
+local function set_gitsigns_keymap()
+  vim.keymap.set("n", "<leader>cn", ":Gitsigns next_hunk<enter>")
+  vim.keymap.set("n", "<leader>cp", ":Gitsigns prev_hunk<enter>")
+  vim.keymap.set("n", "<leader>cb", ":Gitsigns blame<enter>")
+  vim.keymap.set("n", "<leader>cd", ":Gitsigns preview_hunk<enter>")
+  vim.keymap.set("n", "<leader>ca", ":Gitsigns stage_hunk<enter>")
+  vim.keymap.set("n", "<leader>caa", ":Gitsigns stage_buffer<enter>")
+  vim.keymap.set("n", "<leader>cu", ":Gitsigns undo_stage_hunk<enter>")
+  vim.keymap.set("n", "<leader>cr", ":Gitsigns reset_hunk<enter>")
+end
+
 local function set_lsp_autocmd()
   vim.api.nvim_create_autocmd("LspAttach", {
     group = vim.api.nvim_create_augroup("UserLspConfig", {}),
@@ -190,6 +201,7 @@ end
 function M.setup()
   set_generic_keymap()
   set_language_autocmd()
+  set_gitsigns_keymap()
   set_lsp_autocmd()
 end
 
