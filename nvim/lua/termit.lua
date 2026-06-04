@@ -3,6 +3,25 @@ local M = {}
 M.term_buf = nil
 M.prev_buf = nil
 
+local function get_shell()
+    local handle = io.popen("uname")
+    local result = handle:read("*a")
+    handle:close()
+
+    local shell
+    if result:match("^Darwin") then
+        shell = "zsh"
+    elseif result:match("^Linux") then
+        shell = "bash"
+    end
+
+    get_shell = function()
+        return shell
+    end
+
+    return shell
+end
+
 -- TODO: if terminal instance is killed there's no way to respawn
 
 local function is_active()
@@ -24,9 +43,11 @@ function M.termit_global()
   if M.term_buf == nil then
     M.prev_buf = vim.api.nvim_get_current_buf()
     M.term_buf = vim.api.nvim_create_buf(true, false)
+
+    local shell = get_shell()
     vim.cmd(
       string.format(
-        "$tabnew | buffer %s | terminal env -u VIRTUAL_ENV -u VIRTUAL_ENV_PROMPT PATH=%s bash",
+        "$tabnew | buffer %s | terminal env -u VIRTUAL_ENV -u VIRTUAL_ENV_PROMPT PATH=%s " .. shell,
         M.term_buf,
         os.getenv("DEFAULT_PATH")
       )
