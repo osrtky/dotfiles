@@ -13,13 +13,23 @@ dev() {
         # activate the venv for lsp dependencies (ruff & ty)
         source "${DEVENV_PATH}/lsp_deps/bin/activate";
 
-        # if the command is invoked from a dir which contains a .venv, bring it to nvim
-        # so that language server and tools can resolve project dependencies
-        if [[ -d '.venv' ]]; then
-            export PYTHONPATH="$(.venv/bin/python3 -c 'import site; print(site.getsitepackages()[0])')"
-        fi
-        nvim -u ${CONF_ROOT}/nvim/init.lua $1;
+        # collect .venv dirs from current and subdirectories
+        VENV_DIRS=$(find . -maxdepth 2 -name '.venv' -type d)
+        PP=""
+        printf "%s\n" "$VENV_DIRS" | while IFS= read -r vd; do
+            if [ -z "$vd" ]; then
+                break
+            fi
 
+            site_packages="$("$vd/bin/python3" -c 'import site; print(site.getsitepackages()[0])')"
+
+            PP="${PP:+$PP:}$site_packages"
+        done
+
+        # bring .venv directories to nvim via PYTHONPATH env var so that the lsp tools and any
+        # new command executed within nvim runtime can resolve dependencies.
+        export PYTHONPATH=$PP
+        nvim -u ${CONF_ROOT}/nvim/init.lua $1;
         unset PYTHONPATH
         deactivate;
     else
@@ -29,6 +39,7 @@ dev() {
             # plugged
             sh -c 'curl -fLo "${XDG_DATA_HOME:-$HOME/.local/share}"/nvim/site/autoload/plug.vim --create-dirs \
               https://raw.githubusercontent.com/junegunn/vim-plug/master/plug.vim'
+
             # tree-sitter-cli
             cargo install --locked tree-sitter-cli
 
