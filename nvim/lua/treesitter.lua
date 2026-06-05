@@ -17,8 +17,9 @@ function M.setup()
     "vim",
     "vimdoc",
     "query",
-    "sql",
     "python",
+    "rust",
+    "sql",
     "toml",
   })
 end

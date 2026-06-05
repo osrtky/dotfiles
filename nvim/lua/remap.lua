@@ -4,7 +4,7 @@ local tls_util = require("telescope_util")
 local util = require("util")
 
 local format_file_keymap = "<leader>lf"
-local lsp_filetypes = { "cpp", "python", "cuda", "c", "lua", "swift" }
+local lsp_filetypes = { "cpp", "python", "cuda", "c", "lua", "swift", "rust" }
 
 local function set_generic_keymap()
   local termit = require("termit")
