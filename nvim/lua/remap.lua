@@ -102,41 +102,6 @@ local function set_generic_keymap()
   vim.keymap.set("n", "<C-A-S-h>", ":tabmove -1<enter>")
 end
 
-local function set_language_autocmd()
-  vim.api.nvim_create_autocmd("FileType", {
-    pattern = "lua",
-    callback = function(args)
-      local bufnr = args.buf
-      local opts = { buffer = bufnr, silent = true, desc = "lua specific keymap" }
-
-      vim.keymap.set("n", format_file_keymap, function()
-        local content = table.concat(vim.api.nvim_buf_get_lines(bufnr, 0, -1, false), "\n")
-        local output = vim.fn.systemlist({
-          "stylua",
-          "--indent-type",
-          "Spaces",
-          "--indent-width",
-          "2",
-          "--column-width",
-          "100",
-          "--stdin-filepath",
-          vim.api.nvim_buf_get_name(bufnr),
-          "-",
-        }, content)
-
-        if vim.v.shell_error ~= 0 then
-          vim.notify("stylua failed:\n" .. table.concat(output, "\n"))
-          return
-        end
-
-        local view = vim.fn.winsaveview()
-        vim.api.nvim_buf_set_lines(bufnr, 0, -1, false, output)
-        vim.fn.winrestview(view)
-      end, opts)
-    end,
-  })
-end
-
 local function set_lsp_keymap(opts)
   local ft = vim.bo.filetype
   if not util.item_in(ft, lsp_filetypes) then
@@ -200,7 +165,6 @@ end
 
 function M.setup()
   set_generic_keymap()
-  set_language_autocmd()
   set_gitsigns_keymap()
   set_lsp_autocmd()
 end
