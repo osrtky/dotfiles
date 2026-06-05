@@ -4,22 +4,22 @@ M.term_buf = nil
 M.prev_buf = nil
 
 local function get_shell()
-    local handle = io.popen("uname")
-    local result = handle:read("*a")
-    handle:close()
+  local handle = io.popen("uname")
+  local result = handle:read("*a")
+  handle:close()
 
-    local shell
-    if result:match("^Darwin") then
-        shell = "zsh"
-    elseif result:match("^Linux") then
-        shell = "bash"
-    end
+  local shell
+  if result:match("^Darwin") then
+    shell = "zsh"
+  elseif result:match("^Linux") then
+    shell = "bash"
+  end
 
-    get_shell = function()
-        return shell
-    end
-
+  get_shell = function()
     return shell
+  end
+
+  return shell
 end
 
 -- TODO: if terminal instance is killed there's no way to respawn
