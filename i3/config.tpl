@@ -1,6 +1,6 @@
 # setup
 set $mod Mod4
-font pango:Ubuntu Mono 13
+font pango:Adwaita Mono 13
 
 
 # startup
@@ -183,7 +183,7 @@ bar {
     status_command i3status --config ~/.config/i3/i3status.conf
     tray_output primary
     strip_workspace_numbers yes
-    font pango:Ubuntu Mono 13
+    font pango:Adwaita Mono 13
     separator_symbol "//"
     position bottom
 

@@ -14,10 +14,10 @@ GDK_PIXBUF_MODULE_FILE = ""
 WINIT_X11_SCALE_FACTOR = "1"
 
 [font]
-size = 15.0
+size = 12
 
 [font.normal]
-family = "Ubuntu Mono Nerd Font"
+family = "Adwaita Mono Nerd Font"
 style = "Monospace"
 
 [font.offset]
