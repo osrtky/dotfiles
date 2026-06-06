@@ -11,6 +11,7 @@ source ~/.conf_root
 # "custom config." =====================================================
 
 alacritty_cc() {
+    type alacritty && alacritty --config-file "${CONF_ROOT}/alacritty.toml"
     if [[ $# -ne 0 ]]; then
         $CONF_ROOT/../tools/alacritty/target/release/alacritty --config-file "${CONF_ROOT}/alacritty.toml" --class floating -e "$@"
     else
@@ -72,7 +73,7 @@ rofi_control() {
 
 # Custom commands ======================================================
 noscreen() {
-    xrandr 2&>1 /dev/null
+    xrandr 2>&1 /dev/null
     sleep 0.5
     turn_others_off=$(xrandr | grep -oE '^[a-zA-Z0-9\-]+ (dis)?connected' | \
         awk '{print "--output " $1 " --off"}' ORS=' ');
@@ -81,7 +82,7 @@ noscreen() {
 }
 
 externalscreen () {
-    xrandr 2&>1 /dev/null
+    xrandr 2>&1 /dev/null
     sleep 0.5
     external=$(_external_screen)
     if [[ -z $(xrandr | grep "${external} connected") ]]; then
