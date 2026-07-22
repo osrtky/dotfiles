@@ -1,0 +1,96 @@
+#!/usr/bin/env python3
+import argparse
+import os
+import shlex
+from pathlib import Path
+from subprocess import run
+
+
+def _parse_args() -> argparse.Namespace:
+    parser = argparse.ArgumentParser()
+    parser.add_argument("workspace", type=Path)
+    parser.add_argument("--pypaths", nargs="+", default=None)
+    args = parser.parse_args()
+    return args
+
+
+def get_site_packages_path(interpreter: Path) -> str:
+    site_package_dir = run(
+        shlex.split(f"{interpreter} -c 'import site; print(site.getsitepackages()[0])'"),
+        text=True,
+        capture_output=True,
+    ).stdout.strip()
+    assert Path(site_package_dir).is_dir()
+    return site_package_dir
+
+
+def get_venv_site_packages_paths(workspace: Path) -> list[str]:
+    workspace_venv_dirs = [p for p in workspace.rglob(".venv") if p.is_dir()]
+    out = []
+    for vd in workspace_venv_dirs:
+        venv_interpreter = vd / "bin/python3"
+        out.append(get_site_packages_path(venv_interpreter))
+    return out
+
+
+def launch() -> None:
+    # nvim lua runtime reads this env var to be able to start a clean
+    # zsh/bash session in embedded terminal, isolating it from lsp's PYTHONPATH
+    previous_path = os.environ["PATH"]
+    os.environ["DEFAULT_PATH"] = previous_path
+
+    os.environ["PATH"] = ":".join(
+        os.environ["PATH"].split(":") + [str(devenv_path / "lsp_deps/bin")]
+    )
+
+    lsp_deps_site_packages = get_site_packages_path(devenv_path / "lsp_deps/bin/python3")
+    venv_site_packages = get_venv_site_packages_paths(args.workspace)
+    python_paths = [lsp_deps_site_packages] + venv_site_packages
+
+    previous_pythonpath = os.environ.get("PYTHONPATH", None)
+    if previous_pythonpath is not None:
+        python_paths += previous_pythonpath.split(":")
+
+    if args.pypaths:
+        # todo check each pypath is valid, e.g. is_dir
+        python_paths.extend(args.pypaths)
+
+    os.environ["PYTHONPATH"] = ":".join(python_paths)
+    run(shlex.split(f"nvim -u {init_lua} {args.workspace}"))
+
+    # restore
+    if previous_pythonpath is not None:
+        os.environ["PYTHONPATH"] = previous_pythonpath
+    else:
+        del os.environ["PYTHONPATH"]
+    os.environ["PATH"] = previous_path
+
+
+def setup(conf_root: Path):
+    selection = input("dev/nvim launching for the first time, will install deps and exit [Y/n]")
+    if selection in ("", "y", "Y"):
+        url = "https://raw.githubusercontent.com/junegunn/vim-plug/master/plug.vim"
+        target = Path.home() / ".local/share/nvim/site/autoload/plug.vim"
+        run(shlex.split(f"curl -fLo {target} --create-dirs {url}"))
+        run(shlex.split("cargo install --locked tree-sitter-cli"))
+        run(shlex.split(f"nvim -es -u {conf_root}/nvim/init.lua -i NONE -c 'PlugInstall' -c 'qa';"))
+    else:
+        print("aborted")
+
+
+if __name__ == "__main__":
+    # todo glob for conf_root starting from home, depth=2 maybe
+    conf_root = Path.home() / "tools/dotfiles"
+    init_lua = conf_root / "nvim/init.lua"
+
+    args = _parse_args()
+
+    devenv_path = Path.home() / ".devenv"
+    os.environ["DEVENV_PATH"] = str(devenv_path)
+
+    if devenv_path.is_dir():
+        launch()
+    else:
+        setup(conf_root)
+
+    del os.environ["DEVENV_PATH"]

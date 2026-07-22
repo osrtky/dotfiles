@@ -6,51 +6,6 @@ HISTSIZE=10000
 HISTFILESIZE=10000
 HISTCONTROL=ignoreboth:erasedups
 
-dev() {
-    export DEFAULT_PATH=$(bash -l -c 'echo $PATH')
-    export DEVENV_PATH="${HOME}/.devenv";
-    if [[ -d $DEVENV_PATH ]]; then
-        # activate the venv for lsp dependencies (ruff & ty)
-        source "${DEVENV_PATH}/lsp_deps/bin/activate";
-
-        # collect .venv dirs from current and subdirectories
-        VENV_DIRS=$(find . -maxdepth 2 -name '.venv' -type d)
-        PP=""
-        printf "%s\n" "$VENV_DIRS" | while IFS= read -r vd; do
-            if [ -z "$vd" ]; then
-                break
-            fi
-
-            site_packages="$("$vd/bin/python3" -c 'import site; print(site.getsitepackages()[0])')"
-
-            PP="${PP:+$PP:}$site_packages"
-        done
-
-        # bring .venv directories to nvim via PYTHONPATH env var so that the lsp tools and any
-        # new command executed within nvim runtime can resolve dependencies.
-        export PYTHONPATH=$PP
-        nvim -u ${CONF_ROOT}/nvim/init.lua $1;
-        unset PYTHONPATH
-        deactivate;
-    else
-        echo 'nvim launching for the first time, will install deps and exit [Y/n]'
-        read c;
-        if [[ $c == '' || $c == 'y' || $c == 'Y' ]] then
-            # plugged
-            sh -c 'curl -fLo "${XDG_DATA_HOME:-$HOME/.local/share}"/nvim/site/autoload/plug.vim --create-dirs \
-              https://raw.githubusercontent.com/junegunn/vim-plug/master/plug.vim'
-
-            # tree-sitter-cli
-            cargo install --locked tree-sitter-cli
-
-            # nvim plugins
-            nvim -es -u ${CONF_ROOT}/nvim/init.lua -i NONE -c 'PlugInstall' -c 'qa';
-        else
-            echo 'done nothing';
-        fi
-    fi
-}
-
 edit() {
     nvim -u ${CONF_ROOT}/nvim/initlite.vim $1;
 }
