@@ -18,8 +18,12 @@ local function set_generic_keymap()
   -- terminal
   vim.keymap.set("t", "<Esc>", "<C-\\><C-n>")
   vim.keymap.set("t", "<A-Esc>", "<C-\\><Esc>")
-  vim.keymap.set("n", "<A-S-enter>", termit.termit_new)
+  vim.keymap.set("n", "<A-S-n>", termit.termit_new)
   vim.keymap.set("n", "<A-enter>", termit.termit_global)
+
+  -- comment in/out
+  vim.keymap.set("n", "<A-/>", "gcc", { remap = true })
+  vim.keymap.set("v", "<A-/>", "gc", { remap = true })
 
   local tls_blt = require("telescope.builtin")
   -- convenience bindings
@@ -144,14 +148,14 @@ local function set_lsp_keymap(opts)
 end
 
 local function set_gitsigns_keymap()
-  vim.keymap.set("n", "<leader>cn", ":Gitsigns next_hunk<enter>")
-  vim.keymap.set("n", "<leader>cp", ":Gitsigns prev_hunk<enter>")
-  vim.keymap.set("n", "<leader>cb", ":Gitsigns blame<enter>")
-  vim.keymap.set("n", "<leader>cd", ":Gitsigns preview_hunk<enter>")
-  vim.keymap.set("n", "<leader>ca", ":Gitsigns stage_hunk<enter>")
-  vim.keymap.set("n", "<leader>caa", ":Gitsigns stage_buffer<enter>")
-  vim.keymap.set("n", "<leader>cu", ":Gitsigns undo_stage_hunk<enter>")
-  vim.keymap.set("n", "<leader>cr", ":Gitsigns reset_hunk<enter>")
+  vim.keymap.set("n", "cn", ":Gitsigns next_hunk<enter>")
+  vim.keymap.set("n", "cp", ":Gitsigns prev_hunk<enter>")
+  vim.keymap.set("n", "cb", ":Gitsigns blame<enter>")
+  vim.keymap.set("n", "cs", ":Gitsigns preview_hunk<enter>")
+  vim.keymap.set("n", "ca", ":Gitsigns stage_hunk<enter>")
+  vim.keymap.set("n", "cu", ":Gitsigns undo_stage_hunk<enter>")
+  vim.keymap.set("n", "cr", ":Gitsigns reset_hunk<enter>")
+  vim.keymap.set("n", "caa", ":Gitsigns stage_buffer<enter>")
 end
 
 local function set_lsp_autocmd()
