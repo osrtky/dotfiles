@@ -4,25 +4,21 @@ M.term_buf = nil
 M.prev_buf = nil
 
 local function get_shell()
-  local handle = io.popen("uname")
-  local result = handle:read("*a")
-  handle:close()
-
+  local u = require("util")
   local shell
-  if result:match("^Darwin") then
+  if u.is_macos() then
     shell = "zsh"
-  elseif result:match("^Linux") then
+  elseif u.is_linux() then
     shell = "bash"
   end
 
+  -- cache the result for consecutive calls
   get_shell = function()
     return shell
   end
 
   return shell
 end
-
--- TODO: if terminal instance is killed there's no way to respawn
 
 local function is_active()
   return vim.fn.expand("%") == "termit_main"
@@ -36,11 +32,11 @@ local function is_visible_in_tab()
       end
     end
   end
-  return nil
+  return false
 end
 
 function M.termit_global()
-  if M.term_buf == nil then
+  if M.term_buf == nil or not vim.api.nvim_buf_is_valid(M.term_buf) then
     M.prev_buf = vim.api.nvim_get_current_buf()
     M.term_buf = vim.api.nvim_create_buf(true, false)
 

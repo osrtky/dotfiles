@@ -121,4 +121,41 @@ function M.open_cword_in_external()
   end
 end
 
+local function uname()
+  local handle = io.popen("uname")
+  local result = handle:read("*a")
+  handle:close()
+
+  -- cache the result for consecutive calls
+  uname = function()
+    return result
+  end
+
+  return result
+end
+
+function M.is_macos()
+  local os = uname()
+  local result = os:match("^Darwin")
+
+  -- cache the result for consecutive calls
+  M.is_macos = function()
+    return result
+  end
+
+  return result
+end
+
+function M.is_linux()
+  local os = uname()
+  local result = os:match("^Linux")
+
+  -- cache the result for consecutive calls
+  M.is_linux = function()
+    return result
+  end
+
+  return result
+end
+
 return M
