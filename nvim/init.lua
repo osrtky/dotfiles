@@ -1,12 +1,3 @@
-local function plug_llama_cpp_if_available()
-  local llm_server = os.getenv("LLM_SERVER")
-  if llm_server ~= nil and llm_server ~= "" then
-    vim.g.llama_config = { auto_fim = false, endpoint_inst = llm_server }
-    local Plug = vim.fn["plug#"]
-    Plug("ggml-org/llama.vim")
-  end
-end
-
 local function plug(devenv_path)
   vim.cmd("packadd! termdebug")
 
@@ -41,7 +32,6 @@ local function plug(devenv_path)
 
   Plug("windwp/nvim-autopairs")
 
-  plug_llama_cpp_if_available()
 
   vim.call("plug#end")
 end
@@ -56,8 +46,7 @@ local function install_deps_if_needed(devenv_path)
   require("mason_conf").setup(devenv_path .. "/mason")
 end
 
-local function configure(devenv_path)
-
+local function configure()
   require("cmp_conf").setup()
   require("opts").setup()
   require("theme").setup()
@@ -72,4 +61,5 @@ local devenv_path = os.getenv("DEVENV_PATH")
 plug(devenv_path)
 update_package_path()
 install_deps_if_needed(devenv_path)
-configure(devenv_path)
+
+configure()
