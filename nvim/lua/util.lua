@@ -30,12 +30,87 @@ function M.yank_current_file_path()
   M.set_clipboard(curr_buf_path)
 end
 
-function M.yank_word_under_cursor_to_register_interactive()
-  vim.ui.input({ prompt = "Yank to register: " }, function(reg_name)
-    assert(reg_name:len() == 1)
-    assert(reg_name:find("%a") ~= nil)
-    M.feedkeys("viw" .. '"' .. reg_name .. "y")
+local function yank_to_register(type)
+  assert(M.item_in(type, { "w", "W", "selection" }))
+  local buf = vim.api.nvim_create_buf(false, true)
+  local width = 32
+
+  local win = vim.api.nvim_open_win(buf, true, {
+    relative = "editor",
+    width = width,
+    height = 1,
+    row = math.floor(vim.o.lines / 2) - 1,
+    col = math.floor((vim.o.columns - width) / 2),
+    style = "minimal",
+    border = "rounded",
+    title = " Yank to register ",
+    title_pos = "center",
+  })
+
+  vim.bo[buf].bufhidden = "wipe"
+
+  local function close()
+    vim.api.nvim_win_close(win, true)
+  end
+
+  vim.keymap.set("i", "<CR>", function()
+    local reg = vim.api.nvim_get_current_line()
+    close()
+
+    if #reg ~= 1 or not reg:match("%a") then
+      return
+    end
+
+    vim.schedule(function()
+      vim.cmd.stopinsert()
+      if type == "selection" then
+        local start_pos = vim.fn.getpos("'<")
+        local end_pos = vim.fn.getpos("'>")
+        local mode = vim.fn.visualmode()
+
+        local sel = vim.fn.getregion(start_pos, end_pos, { type = mode })
+
+        local paste
+        if mode == "v" then
+          paste = table.concat(sel, "\n")
+        elseif mode == "V" or mode == "\22" then
+          paste = sel
+        end
+
+        vim.fn.setreg(reg, paste)
+        vim.print(sel)
+      else
+        M.feedkeys("vi" .. type .. '"' .. reg .. "y")
+      end
+    end)
+  end, { buffer = buf })
+
+  vim.keymap.set("i", "<Esc>", close, { buffer = buf })
+
+  vim.schedule(function()
+    if vim.api.nvim_win_is_valid(win) then
+      vim.api.nvim_set_current_win(win)
+      vim.api.nvim_feedkeys("A", "ni", true)
+    end
   end)
+end
+
+function M.make_yank_word_to_reg()
+  return function()
+    yank_to_register("w")
+  end
+end
+
+function M.make_yank_WORD_to_reg()
+  return function()
+    yank_to_register("W")
+  end
+end
+
+function M.make_yank_selection_to_reg()
+  return function()
+    yank_to_register("selection")
+  end
 end
 
 function M.get_repo_name()

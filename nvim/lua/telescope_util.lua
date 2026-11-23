@@ -1,3 +1,5 @@
+local util = require("util")
+
 local function launch_mason()
   vim.cmd("Mason")
 end
@@ -23,6 +25,16 @@ end
 local function toggle_relative_line_number()
   local current_value = vim.wo.relativenumber
   vim.wo.relativenumber = not current_value
+end
+
+local function yank_py_import_for_current_file_path()
+  local filepath = util.current_file_path()
+  if not util.endswith(filepath, ".py") then
+    return
+  end
+
+  local import_st = "from " .. filepath:gsub("/", "."):sub(0, #filepath - 3) .. " import "
+  util.set_clipboard(import_st)
 end
 
 local M = {}
@@ -127,31 +139,34 @@ function M.pick(
     :find()
 end
 
-local util = require("util")
 local normal_mode_actions = {
   { "yank current file path", util.yank_current_file_path },
   {
     "yank current file path as python import",
-    require("py_helpers").yank_py_import_for_current_file_path,
+    yank_py_import_for_current_file_path,
   },
   { "show mappings", telescope_show_mappings },
   { "launch mason", launch_mason },
   { "update plugins", update_plugins },
-  {
-    "yank word under cursor to register",
-    util.yank_word_under_cursor_to_register_interactive,
-  },
   { "save session", sessions.save_session },
   { "restore session ...", make_telescope_sessions_picker() },
   { "replace word under cursor in file", util.replace_word_under_cursor_in_current_buffer },
   { "open word under cursor ...", util.open_cword_in_external },
   { "toggle line numbers", toggle_line_number },
   { "toggle relative line numbers", toggle_relative_line_number },
+  { "yank word to register", util.make_yank_word_to_reg() },
+  { "yank WORD to register", util.make_yank_WORD_to_reg() },
 }
 
 local visual_mode_actions = {
-  -- todo: add yank visual-line/visual-column selection to register
   -- todo: add "join multiline into single line with user-requested delimiter"
+  { "yank selection to register", util.make_yank_selection_to_reg() },
+  {
+    "batch execute",
+    function()
+      require("util").feedkeys("gv:norm")
+    end,
+  },
 }
 
 function M.make_telescope_actions_picker(mode)

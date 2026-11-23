@@ -51,6 +51,7 @@ local function set_generic_keymap()
   vim.keymap.set("n", "<leader>f", tls_blt.find_files, {})
   vim.keymap.set("n", "<leader>F", tls_util.telescope_find_directories, {})
   vim.keymap.set("n", "<leader>a", tls_util.make_telescope_actions_picker("n"), {})
+  vim.keymap.set("v", "<leader>a", tls_util.make_telescope_actions_picker("v"), {})
   -- ]
 
   -- distinguish delete and cut
