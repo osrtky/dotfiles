@@ -32,6 +32,7 @@ local function plug(devenv_path)
 
   Plug("windwp/nvim-autopairs")
 
+  Plug("bart-vd/visual-marks.nvim")
 
   vim.call("plug#end")
 end
@@ -54,6 +55,7 @@ local function configure()
   require("peripherals").setup()
   require("remap").setup()
   require("nvim-autopairs").setup()
+  require("visual-marks").setup()
 end
 
 local devenv_path = os.getenv("DEVENV_PATH")
